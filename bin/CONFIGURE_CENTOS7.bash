@@ -21,8 +21,8 @@ sudo pip3.6 install numpy ipython
 
 # Note: We do not create a python36 virtual environment, but we probably should
 
-
 #
 # this brings in the necessary tools:
+sudo yum -y install wget
 
 
