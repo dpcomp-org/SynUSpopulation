@@ -17,6 +17,7 @@ sudo yum -y groupinstall development
 sudo yum -y install https://centos7.iuscommunity.org/ius-release.rpm
 sudo yum -y install python36u
 sudo yum -y install python36u-pip
+sudo pip3.6 install numpy ipython
 
 # Note: We do not create a python36 virtual environment, but we probably should
 
