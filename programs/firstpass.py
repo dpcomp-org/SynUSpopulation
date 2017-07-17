@@ -3,6 +3,7 @@
 #Last Modified: 3/30/2017
 import pandas as pd
 import numpy as np
+import acs
 
 def process_person_chunk(df,count_dict,yearCode,serials_g):
     """df is a pandas dataframe containing a chunk of raw ACS person data.
@@ -16,7 +17,7 @@ def process_person_chunk(df,count_dict,yearCode,serials_g):
     count_dict["total_g"] += len(df.index) #Increases running tally for total number of processed group quarters records
     count_dict["weight_g"] += df['PWGTP'].sum() #Increases running tally for total sum of processed group quarters weights
 
-    serials_g.extend(df["serialno"].tolist()) #Adds serials from current data chunk onto list
+    serials_g.extend(df[acs.SERIALNO].tolist()) #Adds serials from current data chunk onto list
 
     #converts 'ADJINC' variable to years
     df['ADJINC'] = df['ADJINC'].map(yearCode)
@@ -50,7 +51,7 @@ def process_housing_chunk(df,count_dict,yearCode,serials_h):
     count_dict["total_h"] += len(df.index) #Increases running tally for total number of processed records
     count_dict["weight_h"] += df['WGTP'].sum() #Increases running tally for total sum of processed weights
 
-    serials_h.extend(df["serialno"].tolist()) #Adds serials from current data chunk onto list
+    serials_h.extend(df[acs.SERIALNO].tolist()) #Adds serials from current data chunk onto list
 
     #converts 'ADJINC' variable to years
     df['ADJINC'] = df['ADJINC'].map(yearCode)
