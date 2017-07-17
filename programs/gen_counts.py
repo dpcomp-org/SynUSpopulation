@@ -26,7 +26,10 @@ def set_alpha_h(df, count_dict, yearCode, alpha_h):
     if df.empty:
         return alpha_h #ie do nothing if chunk contains no housing units.
     df["ADJINC"]=df["ADJINC"].map(yearCode) #convert ADJINC to year.
-    #convert year to count_dict key for housing units
+
+    #
+    # convert year to count_dict key for housing units
+    #
     df["ADJINC"]=df["ADJINC"].map({2010:"n2010h",2011:"n2011h",2012:"n2012h",2013:"n2013h",2014:"n2014h"})
     df["ADJINC"]=df["ADJINC"].map(count_dict) #convert year key to count
         
@@ -41,7 +44,8 @@ def set_alpha_g(df, count_dict, yearCode, alpha_g):
     if df.empty:
         return alpha_g #ie do nothing if chunk contains no group quarters records.
     df["ADJINC"]=df["ADJINC"].map(yearCode) #convert ADJINC to year
-    #convert year to count_dict key for group quarters
+
+    # convert year to count_dict key for group quarters
     df["ADJINC"]=df["ADJINC"].map({2010:"n2010g",2011:"n2011g",2012:"n2012g",2013:"n2013g",2014:"n2014g"})
     df["ADJINC"]=df["ADJINC"].map(count_dict) #convert year to count
         
@@ -64,7 +68,6 @@ def main(persondir,housingdir):
     logging.basicConfig(filename='gen_counts.log',format='%(asctime)s %(message)s', level=logging_level)
     logging.info('Started')
     
-    
     # Get the files form the provided directories
     # Notes that glob.glob() filenames are sorted. Strictly there is no reason to do this, but it makes debugging easier.
     filenames_person = sorted( glob.glob(os.path.join(persondir,"*.csv"))) #list of four person files
@@ -86,33 +89,35 @@ def main(persondir,housingdir):
     #but it works. If there is a better way of doing this, I'd love to see it.
 
     serials_h=[]
-    for f in filenames_housing:
-        logging.info("reading housing "+f)
+    for f in filenames_housing[0:args.maxstates]:
+        logging.info("computing serials_h reading housing "+f)
         for chunk in pd.read_csv(f,usecols=[acs.SERIALNO,"ADJINC","TYPE","WGTP"],chunksize=100000): #Restrict to necessary columns
             count_dict,serials_h=process_housing_chunk(chunk,count_dict,yearCode,serials_h)
             
     """First pass at person files to collect aggregate counts and store serial numbers of group quarters records"""
     serials_g=[]
-    for f in filenames_person:
-        logging.info("reading persons "+f)
+    for f in filenames_person[0:args.maxstates]:
+        logging.info("computing serials_g reading persons "+f)
         for chunk in pd.read_csv(f,usecols=[acs.SERIALNO,"ADJINC","PWGTP","RELP"],chunksize=100000): #Restrict to necessary columns
             count_dict,serials_g=process_person_chunk(chunk,count_dict,yearCode,serials_g)
             
     """Next pass at housing is to define the prior parameter alpha for the dirichlet distribution over households."""
     alpha_h=[]
-    for f in filenames_housing:
+    for f in filenames_housing[0:args.maxstates]:
+        logging.info("computing alpha_h reading housing "+f)
         for chunk in pd.read_csv(f,usecols=[acs.SERIALNO,"ADJINC","TYPE","WGTP"],chunksize=100000):
             alpha_h=set_alpha_h(chunk,count_dict,yearCode,alpha_h)
+
     """Next pass at person is to define the prior parameter alpha for the dirichlet distribution over group quarters."""
     alpha_g=[]
-    for f in filenames_person:
+    for f in filenames_person[0:args.maxstates]:
+        logging.info("computing alpha_g reading persons "+f)
         for chunk in pd.read_csv(f,usecols=[acs.SERIALNO,"ADJINC","RELP","PWGTP"],chunksize=100000):
             alpha_g=set_alpha_g(chunk,count_dict,yearCode,alpha_g)
     
-    logging.debug(len(alpha_g)==count_dict['total_g']) #sanity checks
-    logging.debug(len(alpha_h)==count_dict['total_h'])
-    
-    
+    #sanity checks
+    assert len(alpha_g)==count_dict['total_g']
+    assert len(alpha_h)==count_dict['total_h']
     
     """Bayesian bootstrap simulation of households using dirichlet-Multinomial model"""
     N_h=132598198 #target size is number of housing units for 2012.
@@ -128,7 +133,7 @@ def main(persondir,housingdir):
     
     counts=pd.concat([counts_h,counts_g])
     counts.to_csv(args.output)
-    logging.info('Finished')
+    logging.info('Wrote output to {}. Finished'.format(args.output))
     
 
 if __name__ == '__main__':
@@ -136,6 +141,7 @@ if __name__ == '__main__':
     parser = ArgumentParser()
     parser.add_argument("--debug",action='store_true')
     parser.add_argument("--output",help="output file",default="rep_counts.csv")
+    parser.add_argument("--maxstates",default=100,type=int,help="Maximum number of states to compute")
     parser.add_argument("persondir",help="directory for person ACS files")
     parser.add_argument("housingdir",help="directory for person ACS files")
     args = parser.parse_args()
