@@ -7,3 +7,4 @@ outputs/rep_counts.csv:
 check:
 	mkdir -p checkdir
 	python3.6 programs/gen_counts.py --maxstates=2 --output=checkdir/rep_counts-2states.csv inputs/p inputs/h	
+

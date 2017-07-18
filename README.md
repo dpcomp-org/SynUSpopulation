@@ -21,9 +21,23 @@ Citation:
     Ann Arbor, MI: Inter-university Consortium of Political and Social
     Research [distributor]. http://doi.org/10.3886/E100486V1
 
-Persistent URL:  http://doi.org/10.3886/E100486V1
-
 Direct Download: https://www2.census.gov/programs-surveys/acs/data/pums/2015/5-Year
+
+However, the data that we have was built from copies of the data obtained from ICPSR/OpenICPSR
+ * Persistent URL:      http://doi.org/10.3886/E100486V1
+ * See also Data Lumos: http://doi.org/10.3886/E100521V1
+
+ * https://www.openicpsr.org/datalumos/project/100521/version/V1/view;jsessionid=E4FA2D6C9A6003487790F2127C15B3DB
+
+### Reference for this work:
+Synthetic population housing and person records for the United States
+Principal Investigator(s):  William Sexton, Cornell University; 
+                            John M. Abowd, Cornell University; 
+                            Ian M. Schmutte, University of Georgia; 
+                            Lars Vilhuber, Cornell University
+Version: V1
+ * https://www.openicpsr.org/openicpsr/project/100274/version/V1/view?path=/openicpsr/100274/fcr:versions/V1/data
+
 
 ## Outputs
 There are 17 housing files

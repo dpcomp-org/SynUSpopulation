@@ -54,14 +54,11 @@ def set_alpha_g(df, count_dict, yearCode, alpha_g):
 
 
 
-
-
-
 def main(persondir,housingdir):
     """Builds synthetic population using Bayesian bootstrapping process on ACS housing records and then populating
     each housing unit/group quarters unit with person records from the ACS person data files"""     
     
-    """Configure log"""
+    """1. Configure log"""
     #Change filename with each run (if desired) otherwise info will append to same log.
     logging_level = logging.DEBUG if args.debug else logging.INFO
 
@@ -76,7 +73,7 @@ def main(persondir,housingdir):
     filenames_housing = sorted( glob.glob(os.path.join(housingdir,"*.csv"))) #list of four housing files
     logging.debug("filenames_housing: {}".format(filenames_housing))
     
-    """Bookkeeping"""
+    """2. Set up Bookkeeping"""
     yearCode={1094136:2010,1071861:2011,1041654:2012,1024037:2013,1008425:2014} #See data dictionary for ADJINC
     
     count_dict={"total_h":0, "n2010h":0, "n2011h":0, "n2012h":0, "n2013h":0, "n2014h":0, "weight_h":0, #n%yr%h is number of observed housing records in yr 
@@ -84,21 +81,26 @@ def main(persondir,housingdir):
     
         
     """First pass of housing files to collect aggregate counts and store serial numbers of households"""
-    #Files processed in chunks to reduce memory footprint.
-    #This approach requires multiple read ins of the data to complete the Bayesian bootstrapping
-    #but it works. If there is a better way of doing this, I'd love to see it.
+    # Files processed in chunks to reduce memory footprint.
+    # This approach requires multiple read ins of the data to complete the Bayesian bootstrapping
+    # but it works. If there is a better way of doing this, I'd love to see it.
 
     serials_h=[]
     for f in filenames_housing[0:args.maxstates]:
         logging.info("computing serials_h reading housing "+f)
-        for chunk in pd.read_csv(f,usecols=[acs.SERIALNO,"ADJINC","TYPE","WGTP"],chunksize=100000): #Restrict to necessary columns
+        for chunk in pd.read_csv(f,usecols=[acs.SERIALNO,"ADJINC","TYPE","WGTP"],
+                                 chunksize=100000): # Restrict to necessary columns
             count_dict,serials_h=process_housing_chunk(chunk,count_dict,yearCode,serials_h)
             
+    print(count_dict)
+    print(serials_h)
+
     """First pass at person files to collect aggregate counts and store serial numbers of group quarters records"""
     serials_g=[]
     for f in filenames_person[0:args.maxstates]:
         logging.info("computing serials_g reading persons "+f)
-        for chunk in pd.read_csv(f,usecols=[acs.SERIALNO,"ADJINC","PWGTP","RELP"],chunksize=100000): #Restrict to necessary columns
+        for chunk in pd.read_csv(f,usecols=[acs.SERIALNO,"ADJINC","PWGTP","RELP"],
+                                 chunksize=100000): # Restrict to necessary columns
             count_dict,serials_g=process_person_chunk(chunk,count_dict,yearCode,serials_g)
             
     """Next pass at housing is to define the prior parameter alpha for the dirichlet distribution over households."""
@@ -131,6 +133,9 @@ def main(persondir,housingdir):
     counts_g=np.random.multinomial(N_g,theta_g) #Draw N sample from Multinomial.
     counts_g=pd.DataFrame({'Count':counts_g},index=serials_g) #Dataframe with group quarters serialno's as index of the count column
     
+    print(counts_h)
+    print(counts_g)
+
     counts=pd.concat([counts_h,counts_g])
     counts.to_csv(args.output)
     logging.info('Wrote output to {}. Finished'.format(args.output))
