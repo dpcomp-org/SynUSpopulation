@@ -1,6 +1,8 @@
-#syn_housing.py
-#William Sexton
-#3/30/2017
+# syn_housing.py
+# William Sexton
+# 3/30/2017
+#
+# Synthesize the housing data
 
 #imports
 import pandas as pd

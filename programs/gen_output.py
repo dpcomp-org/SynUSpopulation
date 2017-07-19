@@ -15,14 +15,14 @@ def produce_housing_output(df,counts,idx_base,ofile):
     df=df.set_index(acs.SERIALNO)
     df.index=df.index.astype(int)
     df=df.join(counts)
-    #Adds count column onto dataframe
+    # Adds count column onto dataframe
     df=df.loc[np.repeat(df.index.values,df["Count"])] #Replicants rows according to count number
     df=df.reset_index(level=[acs.SERIALNO]) #changes serialno back into dataframe column
     df.index=range(idx_base,len(df)+idx_base) #sets unique ids for current chunk of data
     idx_base += len(df) #increments base id index
     df=df.drop('Count',1)
     df.to_csv(ofile,index_label='id')
-    #Returns base id index and dictionary key:value = serialno: list of corresponding ids for unique instances of serialno.
+    # Returns base id index and dictionary key:value = serialno: list of corresponding ids for unique instances of serialno.
     return idx_base, df.groupby(acs.SERIALNO).groups
 
 def produce_person_output(df,counts,mydict,ofile):
