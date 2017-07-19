@@ -26,4 +26,8 @@ sudo pip3.6 install numpy pandas ipython
 # this brings in the necessary tools:
 sudo yum -y install wget
 
+# set up SSH access
+ssh-keygen -t rsa -N "" -f $HOME/.ssh/id_rsa
+cp authorized_keys $HOME/.ssh/
+chmod 600 $HOME/.ssh/authorized_keys
 
