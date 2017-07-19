@@ -1,8 +1,11 @@
 all:
 	(cd inputs;make all)
 
-outputs/rep_counts.csv:
-	python3.6 programs/gen_counts.py --output=outputs/rep_counts.csv inputs/p inputs/h
+outputs/rep_counts_2014.csv:
+	(cd outputs; python3.6 ../programs/gen_counts.py --output=rep_counts_2014.csv ../inputs/2014/p ../inputs/2014/h)
+
+outputs/erial_idx_dict.p: outputs/rep_counts_2014.csv
+	(cd outputs; python3.6 ../programs/rep_syn_housing.py ../inputs/2014/h rep_counts_2014.csv)
 
 check:
 	mkdir -p checkdir

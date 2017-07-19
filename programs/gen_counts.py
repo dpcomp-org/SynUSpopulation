@@ -92,9 +92,6 @@ def main(persondir,housingdir):
                                  chunksize=100000): # Restrict to necessary columns
             count_dict,serials_h=process_housing_chunk(chunk,count_dict,yearCode,serials_h)
             
-    print(count_dict)
-    print(serials_h)
-
     """First pass at person files to collect aggregate counts and store serial numbers of group quarters records"""
     serials_g=[]
     for f in filenames_person[0:args.maxstates]:
@@ -133,9 +130,6 @@ def main(persondir,housingdir):
     counts_g=np.random.multinomial(N_g,theta_g) #Draw N sample from Multinomial.
     counts_g=pd.DataFrame({'Count':counts_g},index=serials_g) #Dataframe with group quarters serialno's as index of the count column
     
-    print(counts_h)
-    print(counts_g)
-
     counts=pd.concat([counts_h,counts_g])
     counts.to_csv(args.output)
     logging.info('Wrote output to {}. Finished'.format(args.output))
