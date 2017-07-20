@@ -16,18 +16,18 @@ Phase 1 description:
       Current Solution: Bootstrap the housing units and group quarters units separately.
  
       a) Housing Units:
-	 Let N_h be the target number of housing units for the synthesize data. N_h is hardcoded now--should be changed to config file.
+	 Let N_h be the target number of housing units for the synthetic dataset. N_h is hardcoded now--should be changed to config file.
 	 Let wgt(i) be the housing weight of housing unit i.
 	 Let n_yr(i)^h be the total number of housing units in the US from the same year as housing unit i.
 	 Note that sum_i wgt(i) is summed over all housing units in the US.
 	 Let n_h be the total number of housing unit records in the housing files.
 	 Let alpha_h be a vector of length n_h defined by (wgt(i)*n_yr(i)^h/sum_i wgt(i)). You need the whole US here.
 	 Let theta_h=Dirichlet(alpha_h). You need the whole US here.
-	 Let counts_h=Multinomial(N_h,theta_h). counts_h is essentially a histogram over housing units. In the synthetic data record i must be duplicated couns_h[i] times. You need the whole US for doing the Multinomial but after counts_h is computed it could be split up by state.
+	 Let counts_h=Multinomial(N_h,theta_h). counts_h is essentially a histogram over housing units. In the synthetic data record i must be duplicated counts_h[i] times. You need the whole US for doing the Multinomial but after counts_h is computed it could be split up by state.
       b) Group Quarters:
 	 There are no weights on group quarters units in the housing files but each group quarters unit in the ACS is linked to exactly one person record so the idea is to indirectly bootstrap the group quarters units from the group quarters population.
 	 Let N_g be the target group quarters population. N_g is hardcoded now--should be changed to config file. 
-	 Let wgt(i) be the person weight of the person linked to the group quarters unit i.
+	 Let wgt(i) be the person weight of the person linked to group quarters unit record i.
 	 Hence, sum_i wgt(i) is summing up all the person weights of person records linked to group quarters units.
 	 Everything else is similar to above. counts_g gives a histogram over group quarters units that tells you how many times each group quarters unit must be duplicated.
 
@@ -35,8 +35,8 @@ Phase 1 description:
 
 Phase 2 description:
       Goal: Populate the households/group quarters.
-      Challenge illustrate by example: Suppose a housing unit with 3 occupants (mom,dad, 1 kid) got duplicated 10 times. The mom,dad, and kid each of the same serialno and it links them to all 10 housing units.
-      Solution: Define new unique identifier for each copy of the housing unit. Create 10 copies of the family and link each to a unique housing unit using the new identifiers. 
+      Challenge illustrated by example: Suppose a housing unit with 3 occupants (mom,dad, 1 kid) got duplicated 10 times. The mom,dad, and kid each have the same serialno and it links them to all 10 housing units. We don't want this.
+      Solution: Define new unique id for each copy of the housing unit. Create 10 copies of the family and link each to a unique housing unit using the new id. 
 
 Description of programs:
 1. gen_counts.py
@@ -45,7 +45,7 @@ Description of programs:
       Solution: Process data in chunks. Aggragate required information a chunk at a time. firstpass.py collects this information.
       Challenge: ACS doesn't include a year variable.
       Solution: Adjustment factors are specific to a year so I used ADJINC as a proxy for year but this required hardcoding the mapping between the adjustment factor and the year. This is one reason why the program won't handle the 2011-2015 data.
-      Alternative Solution: I only recently realized that the first 4 digits of the serialno are always the year. This isn't explicitly stated in the documenation but seems pretty clear from looking at serialno range. I'm constantly learning new things about the input data. This seems like a more nature way to determine year, will require less hardcoding, and make the program more robust to input ranges. I plan on changing the code to this method.
+      Alternative Solution: I only recently realized that the first 4 digits of the serialno are always the year. This isn't explicitly stated in the documenation but seems pretty clear from looking at the serialno range. I'm constantly learning new things about the input data. This seems like a more naturely way to determine year, will require less hardcoding, and make the program more robust to input ranges. I plan on changing the code to this method.
       Challenge: Associating a count in counts_h or counts_g with a specific record.
       Solution: This is fairly straight forward. Index by serialno. Technically counts_g/h are pandas dataframes indexed by serialno with a single Count column.
 
