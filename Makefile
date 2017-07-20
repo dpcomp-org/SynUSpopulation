@@ -1,3 +1,9 @@
+#
+# Targets:
+#
+# all -- Generate fake people for all 50 states + DC and PR
+# e2e -- Generate fake people for the 2018 End To End test (RI, WV and WA)
+
 all:
 	(cd inputs;make all)
 
@@ -12,3 +18,6 @@ check:
 	mkdir -p checkdir
 	python3.6 programs/gen_counts.py --maxstates=2 --output=checkdir/rep_counts-2states.csv inputs/p inputs/h	
 
+
+e2e:
+	(cd inputs;
