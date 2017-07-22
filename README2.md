@@ -1,9 +1,19 @@
 ## Data Dictionary
-See [2010-2014 ACS PUMS data dictionary](http://doi.org/10.3886/E100486V1). All variables from the ACS PUMS housing files are present in the synthetic housing files and all variables from the ACS PUMS person files are present in the synthetic person files. Variables have not been modified in any way. Theoretically, variables like `person weight` no longer have any use in the synthetic population.
 
-## Additional variables.
-- `id`: Both the synthetic housing and person files include this variable. It is meant as an extension/recode of the existing `serialno` variable.  Each housing/group quarters unit in the synthetic population gets a unique `id` and each person in the synthetic population gets linked to exactly one housing/group quarter unit by `id`.
-`id` takes values from 0 to 140613778.
+See [2010-2014 ACS PUMS data dictionary](http://doi.org/10.3886/E100486V1). 
+All variables from the ACS PUMS housing files are present in the
+synthetic housing files and all variables from the ACS PUMS person
+files are present in the synthetic person files. Variables have not
+been modified in any way. Theoretically, variables like `person
+weight` no longer have any use in the synthetic population.
+
+## Additional variables.  
+
+- `id`: Both the synthetic housing and person files include this variable. It is meant as an extension/recode
+of the existing `serialno` variable.  Each housing/group quarters unit
+in the synthetic population gets a unique `id` and each person in the
+synthetic population gets linked to exactly one housing/group quarter
+unit by `id`.  `id` takes values from 0 to 140613778.
 
 - Race recode in person files. Variable names are straightforward but somewhat cumbersome. They are composed of `tokens` as follows:
 
