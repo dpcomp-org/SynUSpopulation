@@ -4,8 +4,11 @@
 # all -- Generate fake people for all 50 states + DC and PR
 # e2e -- Generate fake people for the 2018 End To End test (RI, WV and WA)
 
+PYTHON=python3
+
 all:
-	(cd inputs;make all)
+	$(PYTHON) bin/download.py --config=config.ini --threads=6
+
 
 outputs/rep_counts_2014.csv:
 	(cd outputs; python3.6 ../programs/gen_counts.py --output=rep_counts_2014.csv ../inputs/2014/p ../inputs/2014/h)

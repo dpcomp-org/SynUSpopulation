@@ -4,6 +4,9 @@
 
 This directory contains the most recent version of the code used to create SynPopulation. We modified the bootstrap process to account for flaws in the previous versions. This code maintains the runtime improves of [ACS_multiprocessing](/labordynamicsinstitute/SynUSpopulation/tree/ACS_multiprocess).
 
+## Download
+You first need to download the files from the Census website. This can be done with the downloader script.
+
 ## Inputs
 Assumes you have folders containing the raw ACS person and raw ACS housing data within the directory containing python code.
 
