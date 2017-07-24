@@ -22,16 +22,16 @@ def set_alpha_h(df, count_dict, yearCode, alpha_h):
     """df is a pandas dataframe containing a chunk of data from the raw ACS housing data
     count_dict, yearCode,defined elsewhere in code for bookkeeping purposes
     alpha_h stores prior probabilities for Dirichlet distribution over records of housing data"""
-    df=df[df["TYPE"]==1] #Filter out group quarters.
-    if df.empty:
-        return alpha_h #ie do nothing if chunk contains no housing units.
     df["ADJINC"]=df["ADJINC"].map(yearCode) #convert ADJINC to year.
-
-    #
+    #
     # convert year to count_dict key for housing units
     #
     df["ADJINC"]=df["ADJINC"].map({2010:"n2010h",2011:"n2011h",2012:"n2012h",2013:"n2013h",2014:"n2014h"})
     df["ADJINC"]=df["ADJINC"].map(count_dict) #convert year key to count
+    df=df[df["TYPE"]==1] #Filter out group quarters.
+    if df.empty:
+        return alpha_h #ie do nothing if chunk contains no housing units.
+    
         
     alpha_h.extend((df["WGTP"]*df["ADJINC"]/count_dict["weight_h"]).tolist())
     return alpha_h
@@ -40,15 +40,16 @@ def set_alpha_g(df, count_dict, yearCode, alpha_g):
     """df is a pandas dataframe containing a chunk of data from the raw ACS person data
     count_dict, yearCode,defined elsewhere in code for bookkeeping purposes
     alpha_g stores prior probabilities for Dirichlet distribution over records of group quarters data"""
+    df["ADJINC"]=df["ADJINC"].map(yearCode) #convert ADJINC to year.
+    #
+    # convert year to count_dict key for housing units
+    #
+    df["ADJINC"]=df["ADJINC"].map({2010:"n2010h",2011:"n2011h",2012:"n2012h",2013:"n2013h",2014:"n2014h"})
+    df["ADJINC"]=df["ADJINC"].map(count_dict) #convert year key to count
     df=df[(df["RELP"]==16) | (df["RELP"]==17)] #Filter to only include group quarters records. See data dictionary for RELP description.
     if df.empty:
         return alpha_g #ie do nothing if chunk contains no group quarters records.
-    df["ADJINC"]=df["ADJINC"].map(yearCode) #convert ADJINC to year
-
-    # convert year to count_dict key for group quarters
-    df["ADJINC"]=df["ADJINC"].map({2010:"n2010g",2011:"n2011g",2012:"n2012g",2013:"n2013g",2014:"n2014g"})
-    df["ADJINC"]=df["ADJINC"].map(count_dict) #convert year to count
-        
+            
     alpha_g.extend((df["PWGTP"]*df["ADJINC"]/count_dict["weight_g"]).tolist())
     return alpha_g
 
