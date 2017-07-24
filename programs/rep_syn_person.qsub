@@ -1,6 +1,6 @@
 #!/bin/bash -l
-#PBS -N gen_small
-#PBS -l ncpus=2
+#PBS -N gen_syn_person
+#PBS -l ncpus=16
 #PBS -l mem=750000mb
 #PBS -l walltime=96:00:00
 #PBS -j oe
