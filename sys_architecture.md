@@ -1,35 +1,61 @@
-System description
+# System description
+
 William Sexton
+
 7/19/2017
 
-Conceptual outline:
-There are two main phases:
-      1. Bayesian bootstrapping on housing files
-         a) Housing units
-	 b) Group Quarters
-      2. Populating housing units with person records
+## Conceptual outline:
 
-Phase 1 description:
-      Goal: Draw N samples from a dirichlet-multinomial distribution over all the records in the US housing file.
-      Defining the distribution: We need to compute wgt(i)*n_yr(i)/sum_i wgt(i) for each record i where wgt(i) is the housing weight of i and n_yr(i) is the number of records in the US housing file from the same year as record i.
-      Challenge: Group quarters records in the housing file do not have housing weights.
-      Current Solution: Bootstrap the housing units and group quarters units separately.
+There are two main phases:
+
+1. Bayesian bootstrapping on housing files
+
+	a) Housing units
+	
+	b) Group Quarters
+	
+2. Populating housing units with person records
+
+### Phase 1 description:
+
+**Goal:** Draw N samples from a dirichlet-multinomial distribution over all the records in the US housing file.
+      
+**Defining the distribution:** We need to compute wgt(i)*n_yr(i)/sum_i wgt(i) for each record i where wgt(i) is the housing weight of i and n_yr(i) is the number of records in the US housing file from the same year as record i.
+      
+**Challenge:** Group quarters records in the housing file do not have housing weights.
+
+**Current Solution:** Bootstrap the housing units and group quarters units separately.
  
-      a) Housing Units:
-	 Let N_h be the target number of housing units for the synthesize data. N_h is hardcoded now--should be changed to config file.
-	 Let wgt(i) be the housing weight of housing unit i.
-	 Let n_yr(i)^h be the total number of housing units in the US from the same year as housing unit i.
-	 Note that sum_i wgt(i) is summed over all housing units in the US.
-	 Let n_h be the total number of housing unit records in the housing files.
-	 Let alpha_h be a vector of length n_h defined by (wgt(i)*n_yr(i)^h/sum_i wgt(i)). You need the whole US here.
-	 Let theta_h=Dirichlet(alpha_h). You need the whole US here.
-	 Let counts_h=Multinomial(N_h,theta_h). counts_h is essentially a histogram over housing units. In the synthetic data record i must be duplicated couns_h[i] times. You need the whole US for doing the Multinomial but after counts_h is computed it could be split up by state.
-      b) Group Quarters:
-	 There are no weights on group quarters units in the housing files but each group quarters unit in the ACS is linked to exactly one person record so the idea is to indirectly bootstrap the group quarters units from the group quarters population.
-	 Let N_g be the target group quarters population. N_g is hardcoded now--should be changed to config file. 
-	 Let wgt(i) be the person weight of the person linked to the group quarters unit i.
-	 Hence, sum_i wgt(i) is summing up all the person weights of person records linked to group quarters units.
-	 Everything else is similar to above. counts_g gives a histogram over group quarters units that tells you how many times each group quarters unit must be duplicated.
+ a) Housing Units:
+	Let N_h be the target number of housing units for the synthesize data. N_h is hardcoded now--should be changed to config file.
+	
+	Let wgt(i) be the housing weight of housing unit i.
+	
+	Let n_yr(i)^h be the total number of housing units in the US from the same year as housing unit i.
+	
+	Note that sum_i wgt(i) is summed over all housing units in the US.
+	
+	Let n_h be the total number of housing unit records in the housing files.
+	
+	Let alpha_h be a vector of length n_h defined by (wgt(i)*n_yr(i)^h/sum_i wgt(i)). You need the whole US here.
+	
+	Let theta_h=Dirichlet(alpha_h). You need the whole US here.
+	
+	Let counts_h=Multinomial(N_h,theta_h). counts_h is essentially a histogram over housing units.  
+	In the synthetic data record i must be duplicated couns_h[i] times. You need the whole US for  
+	doing the Multinomial but after counts_h is computed it could be split up by state.
+	
+b) Group Quarters:
+
+	There are no weights on group quarters units in the housing files but each group quarters unit in the ACS is linked to exactly one person record so the idea is to indirectly bootstrap the group quarters units from the group quarters population.
+	
+	Let N_g be the target group quarters population. N_g is hardcoded now--should be changed to config file. 
+	
+	Let wgt(i) be the person weight of the person linked to the group quarters unit i.
+	
+	Hence, sum_i wgt(i) is summing up all the person weights of person records linked to group quarters units.
+	
+	Everything else is similar to above. counts_g gives a histogram over group quarters units that tells you how many times each group quarters unit must be duplicated.
 
       The final part of this phase is to actually duplicate each record to create the synthetic housing data files.
 
