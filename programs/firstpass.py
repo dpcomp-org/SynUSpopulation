@@ -48,7 +48,7 @@ def process_housing_chunk(df,count_dict,yearCode,serials_h):
     
     df=df[df["TYPE"]==1] #TYPE 1 is housing unit
     if df.empty:
-        return count_dict, serials_g
+        return count_dict, serials_h
     count_dict["total_h"] += len(df.index) #Increases running tally for total number of processed records
     count_dict["weight_h"] += df['WGTP'].sum() #Increases running tally for total sum of processed weights
 
