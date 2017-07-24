@@ -44,3 +44,10 @@ def foo3(df,mymap):
 foo3(df4, mymap) #new function first call
 print("warning")
 foo2(df4, mymap)
+
+print("foo4 does same thing as foo2/3 but in oppisite order")
+def foo4(df,mymap):
+    df['a']=df['a'].map(mymap)
+    df=df[df['b']==5]
+foo4(df4,mymap)
+print("no warning")

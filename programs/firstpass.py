@@ -10,6 +10,8 @@ def process_person_chunk(df,count_dict,yearCode,serials_g):
     cound_dict has counts of observed records by year by housing type. Also has total counts.
     yearCode is dictionary for mapping ADJINC to year.
     serials_g is a list of group quarters serial numbers."""
+    #converts 'ADJINC' variable to years
+    df['ADJINC'] = df['ADJINC'].map(yearCode)
     df=df[(df["RELP"]==16) | (df["RELP"]==17)] #Filter to only include group quarters records. See data dictionary for RELP description.
     
     if df.empty:
@@ -19,9 +21,7 @@ def process_person_chunk(df,count_dict,yearCode,serials_g):
 
     serials_g.extend(df[acs.SERIALNO].tolist()) #Adds serials from current data chunk onto list
 
-    #converts 'ADJINC' variable to years
-    df['ADJINC'] = df['ADJINC'].map(yearCode)
-    
+       
     #counting group quarters by year
     
     cnt_g=df.groupby("ADJINC").size() #returns pandas series
@@ -42,8 +42,9 @@ def process_housing_chunk(df,count_dict,yearCode,serials_h):
     count_dict is a dictionary with values representing observed counts for each key.
     yearCode is dictionary used to map 'ADJINC' variable to year following ACS data dictionary specification
     serials_h is a list for storing all processed serials from household records"""
-    #count_dict keys ={total, n2010h, n2011h, n2012h, n2013h, n2014h, n2010g, n2011g, n2012g, n2013g, n2014g,weight}
     
+    #converts 'ADJINC' variable to years
+    df['ADJINC'] = df['ADJINC'].map(yearCode)
     
     df=df[df["TYPE"]==1] #TYPE 1 is housing unit
     if df.empty:
@@ -52,9 +53,6 @@ def process_housing_chunk(df,count_dict,yearCode,serials_h):
     count_dict["weight_h"] += df['WGTP'].sum() #Increases running tally for total sum of processed weights
 
     serials_h.extend(df[acs.SERIALNO].tolist()) #Adds serials from current data chunk onto list
-
-    #converts 'ADJINC' variable to years
-    df['ADJINC'] = df['ADJINC'].map(yearCode)
     
     #counting housing by year
     
