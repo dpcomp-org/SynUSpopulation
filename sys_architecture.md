@@ -26,24 +26,27 @@ There are two main phases:
 
 **Current Solution:** Bootstrap the housing units and group quarters units separately.
  
- a) Housing Units:	Let N_h be the target number of housing units for the synthesize data. N_h is hardcoded now--should be changed to config file.
-	
-	Let wgt(i) be the housing weight of housing unit i.
-	
-	Let n_yr(i)^h be the total number of housing units in the US from the same year as housing unit i.
-	
-	Note that sum_i wgt(i) is summed over all housing units in the US.
-	
-	Let n_h be the total number of housing unit records in the housing files.
-	
-	Let alpha_h be a vector of length n_h defined by (wgt(i)*n_yr(i)^h/sum_i wgt(i)). You need the whole US here.
-	
-	Let theta_h=Dirichlet(alpha_h). You need the whole US here.
-	
-	Let counts_h=Multinomial(N_h,theta_h). counts_h is essentially a histogram over housing units.  
-	In the synthetic data record i must be duplicated couns_h[i] times. You need the whole US for  
-	doing the Multinomial but after counts_h is computed it could be split up by state.
-	
+a) Housing Units:
+ 
+Let N_h be the target number of housing units for the synthesize data. N_h is hardcoded now--should be changed to config file.
+
+Let wgt(i) be the housing weight of housing unit i.
+
+Let n_yr(i)^h be the total number of housing units in the US from the same year as housing unit i.
+
+Note that sum_i wgt(i) is summed over all housing units in the US.
+
+Let n_h be the total number of housing unit records in the housing files.
+
+Let alpha_h be a vector of length n_h defined by (wgt(i)*n_yr(i)^h/sum_i wgt(i)). You need the whole US here.
+
+Let theta_h=Dirichlet(alpha_h). You need the whole US here.
+
+Let counts_h=Multinomial(N_h,theta_h). counts_h is essentially a histogram over housing units.  
+
+In the synthetic data record i must be duplicated couns_h[i] times. You need the whole US for  
+doing the Multinomial but after counts_h is computed it could be split up by state.
+
 b) Group Quarters:
 
 	There are no weights on group quarters units in the housing files but each group quarters unit in the ACS is linked to exactly one person record so the idea is to indirectly bootstrap the group quarters units from the group quarters population.
