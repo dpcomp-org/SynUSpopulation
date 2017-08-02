@@ -26,8 +26,7 @@ There are two main phases:
 
 **Current Solution:** Bootstrap the housing units and group quarters units separately.
  
- a) Housing Units:
-	Let N_h be the target number of housing units for the synthesize data. N_h is hardcoded now--should be changed to config file.
+ a) Housing Units:	Let N_h be the target number of housing units for the synthesize data. N_h is hardcoded now--should be changed to config file.
 	
 	Let wgt(i) be the housing weight of housing unit i.
 	
@@ -59,7 +58,7 @@ b) Group Quarters:
 
       The final part of this phase is to actually duplicate each record to create the synthetic housing data files.
 
-Phase 2 description:
+### Phase 2 description:
       Goal: Populate the households/group quarters.
       Challenge illustrate by example: Suppose a housing unit with 3 occupants (mom,dad, 1 kid) got duplicated 10 times. The mom,dad, and kid each of the same serialno and it links them to all 10 housing units.
       Solution: Define new unique identifier for each copy of the housing unit. Create 10 copies of the family and link each to a unique housing unit using the new identifiers. 
