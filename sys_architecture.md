@@ -11,9 +11,9 @@ There are two main phases:
 1. Bayesian bootstrapping on housing files
 
 	a) Housing units
-	
+
 	b) Group Quarters
-	
+
 2. Populating housing units with person records
 
 ### Phase 1 description:
@@ -28,38 +28,38 @@ There are two main phases:
  
 a) Housing Units:
  
-Let N_h be the target number of housing units for the synthesize data. N_h is hardcoded now--should be changed to config file.
+ &nbsp;&nbsp;&nbsp;&nbsp;Let N_h be the target number of housing units for the synthesize data. N_h is hardcoded now--should be changed to config file.
 
-Let wgt(i) be the housing weight of housing unit i.
+&nbsp;&nbsp;&nbsp;&nbsp;Let wgt(i) be the housing weight of housing unit i.
 
-Let n_yr(i)^h be the total number of housing units in the US from the same year as housing unit i.
+&nbsp;&nbsp;&nbsp;&nbsp;Let n_yr(i)^h be the total number of housing units in the US from the same year as housing unit i.
 
-Note that sum_i wgt(i) is summed over all housing units in the US.
+&nbsp;&nbsp;&nbsp;&nbsp;Note that sum_i wgt(i) is summed over all housing units in the US.
 
-Let n_h be the total number of housing unit records in the housing files.
+&nbsp;&nbsp;&nbsp;&nbsp;Let n_h be the total number of housing unit records in the housing files.
 
-Let alpha_h be a vector of length n_h defined by (wgt(i)*n_yr(i)^h/sum_i wgt(i)). You need the whole US here.
+&nbsp;&nbsp;&nbsp;&nbsp;Let alpha_h be a vector of length n_h defined by (wgt(i)*n_yr(i)^h/sum_i wgt(i)). You need the whole US here.
 
-Let theta_h=Dirichlet(alpha_h). You need the whole US here.
+&nbsp;&nbsp;&nbsp;&nbsp;Let theta_h=Dirichlet(alpha_h). You need the whole US here.
 
-Let counts_h=Multinomial(N_h,theta_h). counts_h is essentially a histogram over housing units.  
+&nbsp;&nbsp;&nbsp;&nbsp;Let counts_h=Multinomial(N_h,theta_h). counts_h is essentially a histogram over housing units.  
 
-In the synthetic data record i must be duplicated couns_h[i] times. You need the whole US for  
+&nbsp;&nbsp;&nbsp;&nbsp;In the synthetic data record i must be duplicated couns_h[i] times. You need the whole US for  
 doing the Multinomial but after counts_h is computed it could be split up by state.
 
 b) Group Quarters:
 
-	There are no weights on group quarters units in the housing files but each group quarters unit in the ACS is linked to exactly one person record so the idea is to indirectly bootstrap the group quarters units from the group quarters population.
-	
-	Let N_g be the target group quarters population. N_g is hardcoded now--should be changed to config file. 
-	
-	Let wgt(i) be the person weight of the person linked to the group quarters unit i.
-	
-	Hence, sum_i wgt(i) is summing up all the person weights of person records linked to group quarters units.
-	
-	Everything else is similar to above. counts_g gives a histogram over group quarters units that tells you how many times each group quarters unit must be duplicated.
+&nbsp;&nbsp;&nbsp;&nbsp;There are no weights on group quarters units in the housing files but each group quarters unit in the ACS is linked to exactly one person record so the idea is to indirectly bootstrap the group quarters units from the group quarters population.
 
-      The final part of this phase is to actually duplicate each record to create the synthetic housing data files.
+&nbsp;&nbsp;&nbsp;&nbsp;Let N_g be the target group quarters population. N_g is hardcoded now--should be changed to config file. 
+
+&nbsp;&nbsp;&nbsp;&nbsp;Let wgt(i) be the person weight of the person linked to the group quarters unit i.
+
+&nbsp;&nbsp;&nbsp;&nbsp;Hence, sum_i wgt(i) is summing up all the person weights of person records linked to group quarters units.
+
+&nbsp;&nbsp;&nbsp;&nbsp;Everything else is similar to above. counts_g gives a histogram over group quarters units that tells you how many times each group quarters unit must be duplicated.
+
+&nbsp;&nbsp;&nbsp;&nbsp;The final part of this phase is to actually duplicate each record to create the synthetic housing data files.
 
 ### Phase 2 description:
       Goal: Populate the households/group quarters.
