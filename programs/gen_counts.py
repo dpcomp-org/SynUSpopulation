@@ -3,10 +3,10 @@
 # William Sexton
 # Last Modified: 9/17/2017
 """ Generate counts over serialno's """
-#inputs: argv[1] - raw ACS person files (in a directory?)
-#        argv[2] - raw ACS housing files (in a directory)
+# inputs: argv[1] - raw ACS person files (in a directory?)
+#         argv[2] - raw ACS housing files (in a directory)
 
-#imports
+# imports
 import os.path
 import logging
 import glob
@@ -15,8 +15,16 @@ import numpy as np
 import acs
 
 def process_chunk(df, cnt_dict, serials, unitType):
-    """ """
-    # map serialno to year, first 4 digits of serialno are the year.   
+    """ inputs: pandas dataframe--either from ACS person or ACS housing files,
+                count dictionary,
+                list of serialnos,
+                unitType is 'HH' or 'GQ'
+        (1) map serialno to year, first 4 digits of serialno are the year
+        (2) filter to unitType and increment record weight total
+        (3) increment total of unitType
+        (4) extend list by serialnos in filtered df
+        (5) increment observation counts for each year 
+        return: count dictionary and serial list of unitType """
     df["YEAR"] = df[acs.SERIALNO].map(lambda serialno: serialno[:4]) 
     
     if unitType == "GQ":
@@ -29,21 +37,23 @@ def process_chunk(df, cnt_dict, serials, unitType):
     cnt_dict["total"] += len(df.index)
     serials.extend(df[acs.SERIALNO].tolist())
 
-    # counting group quarters by year
     cnt = df.groupby("YEAR").size() 
     for key in cnt_dict:
         cnt_dict[key] += cnt.get(key, 0)
     return cnt_dict, serials
 
 def set_alpha(df, cnt_dict, alpha, unitType):
-    """df is a pandas dataframe containing a chunk of data
-       from the raw ACS housing data.
-       count_dict, year_code,defined elsewhere in code for bookkeeping purposes.
-       alpha_h stores prior probabilities for Dirichlet distribution
-       over records of housing data."""
+    """ inputs: pandas dataframe--either from ACS person or ACS housing files 
+                count_dict, 
+                list of prior probabilities for Dirichlet distribution over records of unitType,
+                unitType is 'HH' or 'GQ'
+        (1) map serialno to year, first 4 digits of serialno are the year
+        (2) map year to counts of unitType
+        (3) filter to unitType and extend list of probabilities
+        return: extended list of probabilities over unitType records  """
     df["YEAR"] = df[acs.SERIALNO].map(lambda serialno: serialno[:4]) 
-    
     df["YEARCNT"] = df["YEAR"].map(cnt_dict)
+    
     if unitType == "GQ":
         df = df[(df["RELP"] == 16) | (df["RELP"] == 17)] # filter to GQ
         alpha.extend((df["PWGTP"]*df["YEARCNT"]/cnt_dict["weight"]).tolist())
@@ -53,10 +63,10 @@ def set_alpha(df, cnt_dict, alpha, unitType):
     return alpha
 
 def main(persondir,housingdir):
-    """Builds synthetic population using Bayesian bootstrapping process
-       on ACS housing records and then populating each
-       housing unit/group quarters unit with person records
-       from the ACS person data files."""     
+    """ Builds synthetic population using Bayesian bootstrapping process
+        on ACS housing records and then populating each
+        housing unit/group quarters unit with person records
+        from the ACS person data files."""     
     """1. Configure log"""
     # Change filename with each run (if desired) otherwise info
     # will append to same log.
@@ -73,12 +83,12 @@ def main(persondir,housingdir):
     logging.debug("filenames_housing: {}".format(filenames_housing))
     """2. Set up Bookkeeping"""
     #
-    # count_dict is a single place where we keep track of the count,
-    # for each year, of households & group quarters.
+    # cnt_[GQ | HH] is where we keep track of the counts,
+    # for each year, of group quarters and households.
     #
-    # index: n{YEAR}[h|g]  where YEAR is the 4 digit year
-    # and h|g is household or group quarters.
-    #
+    # index: {YEAR}  where YEAR is the 4 digit year
+    #        total: total number of GQ | HH
+    #        weight: summed weight over all GQ | HH
     cnt_GQ = {"total":0, "2010":0, "2011":0, "2012":0,
                   "2013":0, "2014":0, "weight":0} 
     cnt_HH = {"total":0, "2010":0, "2011":0, "2012":0,
@@ -94,9 +104,9 @@ def main(persondir,housingdir):
     # serials_HH is the array of serial numbers of households
     serials_HH = []
     for f in filenames_housing[0:args.maxstates]:
-        logging.info("computing serials_h reading housing "+f)
+        logging.info("computing serials_HH reading housing "+f)
         for chunk in pd.read_csv(f,
-                                 usecols=[acs.SERIALNO,"TYPE","WGTP"],
+                                 usecols=[acs.SERIALNO, "TYPE", "WGTP"],
                                  chunksize=100000):
             cnt_HH, serials_HH = process_housing_chunk(chunk,
                                                           cnt_HH,
@@ -107,9 +117,9 @@ def main(persondir,housingdir):
     # serials_GQ is an array of the serial numbers of group quarters
     serials_GQ = []
     for f in filenames_person[0:args.maxstates]:
-        logging.info("computing serials_g reading persons "+f)
+        logging.info("computing serials_GQ reading persons "+f)
         for chunk in pd.read_csv(f,
-                                 usecols=[acs.SERIALNO,"PWGTP","RELP"],
+                                 usecols=[acs.SERIALNO, "PWGTP", "RELP"],
                                  chunksize=100000):
             cnt_GQ, serials_GQ = process_person_chunk(chunk,
                                                          count_GQ, 
@@ -120,48 +130,48 @@ def main(persondir,housingdir):
     # alpha_HH is the array of weights of households
     alpha_HH = []
     for f in filenames_housing[0:args.maxstates]:
-        logging.info("computing alpha_h reading housing "+f)
+        logging.info("computing alpha_HH reading housing "+f)
         for chunk in pd.read_csv(f,
                                  usecols=[acs.SERIALNO, "TYPE", "WGTP"],
                                  chunksize=100000):
-            alpha_h = set_alpha_h(chunk, count_dict, alpha_h)
+            alpha_HH = set_alpha(chunk, cnt_HH, alpha_HH)
     """Next pass at person is to define the prior parameter alpha
        for the dirichlet distribution over group quarters."""
-    # alpha_g is the array of weights of group quarters
-    alpha_g = []
+    # alpha_GQ is the array of weights of group quarters
+    alpha_GQ = []
     for f in filenames_person[0:args.maxstates]:
-        logging.info("computing alpha_g reading persons "+f)
+        logging.info("computing alpha_GQ reading persons "+f)
         for chunk in pd.read_csv(f,
                                  usecols=[acs.SERIALNO, "RELP", "PWGTP"],
                                  chunksize=100000):
-            alpha_g = set_alpha_g(chunk, count_dict, alpha_g)
+            alpha_GQ = set_alpha(chunk, cnt_GQ, alpha_GQ)
     # Verify that the number of weights for households and group quarters
     # matches the number of labels. 
-    assert len(serials_g) == len(alpha_g)
-    assert len(serials_g) == count_dict['total_g']
-    assert len(serials_h) == len(alpha_g)
-    assert len(alpha_h) == count_dict['total_h']
+    assert len(serials_GQ) == len(alpha_GQ)
+    assert len(serials_GQ) == cnt_GQ["total"]
+    assert len(serials_HH) == len(alpha_HH)
+    assert len(alpha_HH) == cnt_HH["total"]
     
-    """Bayesian bootstrap simulation of households using
-       dirichlet-Multinomial model"""
-    N_h = 132598198 #target size is number of housing units for 2012.
-    theta_h  = np.random.dirichlet(alpha_h) # Draw Multinomial probabilities
+    """ Bayesian bootstrap simulation of households using
+       dirichlet-Multinomial model """
+    N_HH = 132598198 # target size is number of housing units for 2012.
+    theta_HH  = np.random.dirichlet(alpha_HH) # Draw Multinomial probabilities
                                             # from prior.
-    counts_h = np.random.multinomial(N_h, theta_h) # Draw N sample from
+    counts_HH = np.random.multinomial(N_HH, theta_HH) # Draw N sample from
                                                    # Multinomial.
-    counts_h = pd.DataFrame({'Count':counts_h}, index=serials_h) # Dataframe
+    counts_HH = pd.DataFrame({'Count':counts_HH}, index=serials_HH) # Dataframe
                       # with housing serialno's as index of the count column.
 
-    """Bayesian bootstrap simulation of group quarters using
-       dirichlet-Multinomial model"""
-    N_g = 8015581 #target size is group quarters population for 2012.
-    theta_g = np.random.dirichlet(alpha_g) # Draw Multinomial probabilities
+    """ Bayesian bootstrap simulation of group quarters using
+       dirichlet-Multinomial model """
+    N_GQ = 8015581 #target size is group quarters population for 2012.
+    theta_GQ = np.random.dirichlet(alpha_GQ) # Draw Multinomial probabilities
                                            # from prior.
-    counts_g = np.random.multinomial(N_g, theta_g) # Draw N sample from
+    counts_GQ = np.random.multinomial(N_GQ, theta_GQ) # Draw N sample from
                                                    # Multinomial.
-    counts_g = pd.DataFrame({'Count':counts_g}, index=serials_g) # Dataframe
+    counts_GQ = pd.DataFrame({'Count':counts_GQ}, index=serials_GQ) # Dataframe
                # with group quarters serialno's as index of the count column.
-    counts = pd.concat([counts_h, counts_g])
+    counts = pd.concat([counts_HH, counts_GQ])
     counts.to_csv(args.output)
     logging.info('Wrote output to {}. Finished'.format(args.output))
 
@@ -175,5 +185,5 @@ if __name__ == '__main__':
     parser.add_argument("housingdir",help="directory for person ACS files")
     args = parser.parse_args()
 
-    np.random.seed(1138) #To facilitate replication.
+    np.random.seed(1138) # To facilitate replication.
     main(args.persondir, args.housingdir)

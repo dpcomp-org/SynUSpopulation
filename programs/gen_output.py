@@ -4,7 +4,7 @@
 """ Functions to write output """
 import numpy as np
 import acs
-def produce_housing_output(df, counts, idx_base, ofile):
+def produce_housing_output(df, counts, ofile):
     """df is pandas dataframe containing chunk of raw housing data.
     counts is a dataframe indexed by serialno with column listing number
     of replicants to produce.
@@ -20,16 +20,12 @@ def produce_housing_output(df, counts, idx_base, ofile):
                                                          # number
     df = df.reset_index(level=[acs.SERIALNO]) # changes serialno back into
                                                 # dataframe column
-    df.index = range(idx_base, len(df) + idx_base) # sets unique ids for
-                                                   # current chunk of data
-    idx_base += len(df) #increments base id index
+    unique_id = df.groupby(acs.SERIALNO).cumcount()
+    df['id'] = df[acs.SERIALNO].astype(str) + '.' + unique_id.astype(str)
     df = df.drop('Count', 1)
-    df.to_csv(ofile, index_label='id')
-    # Returns base id index and dictionary key:value = serialno:
-    # list of corresponding ids for unique instances of serialno.
-    return idx_base, df.groupby(acs.SERIALNO).groups
-
-def produce_person_output(df, counts, mydict, ofile):
+    df.to_csv(ofile, index=False)
+   
+def produce_person_output(df, counts, ofile):
     """df is dataframe containing chunk of raw ACS person data
     counts is a dataframe indexed by serialno with column listing number
     of replicants to produce.
@@ -57,10 +53,8 @@ def produce_person_output(df, counts, mydict, ofile):
     # logging.info('duplicate')
     df.index.name = 'id' #Set index name
     df = df.reset_index(level=['id']) #Converts index into column
-    myset = df.groupby('id').groups
-    # logging.info('begin id')
-    for key in myset:
-        df.loc[myset[key], 'id'] = mydict[df.loc[myset[key][0], acs.SERIALNO]]
+    unique_id = df.groupby('id').cumcount()
+    df['id'] = df[acs.SERIALNO].astype(str) + '.' + unique_id.astype(str)
         # adjusts ids to match one copy of person to each replicated household
     df = df.drop('Count', 1)
     #logging.info('end id, begin file')
